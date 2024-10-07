@@ -6,6 +6,7 @@ import sys
 import pandas as pd
 from io import StringIO
 import matplotlib.pyplot as plt
+import itertools
 
 
 def main():
@@ -13,7 +14,7 @@ def main():
     df_layouts, df_keys, df_bigrams, df_penalties = parse_config(load_config())
 
     # as some letters are not present in all layouts, they can be manually removed from the bigrams list
-    letters_to_ignore = 'êàçâîôñäöüß/å'
+    letters_to_ignore = 'êàçâîôñäöüß/åéè-'
     # iterate over the dataframe to remove the letters
     for row in df_bigrams.itertuples():
         drop = False
@@ -26,13 +27,13 @@ def main():
     # modify languages from theory to add the punctuation frequency from personal corpus
     # copy the "theory" numbers to a "no punctuation" column first
     df_bigrams['en_nopunctuation'] = df_bigrams['en']
-    df_bigrams['fr_nopunctuation'] = df_bigrams['fr']
+    # df_bigrams['fr_nopunctuation'] = df_bigrams['fr']
     punctuation = ".,-'/"
     for row in df_bigrams.itertuples():
         for c in punctuation:
             if str(c) in row.Index:
                 df_bigrams.at[row.Index, 'en'] = df_bigrams.at[row.Index, 'en_perso']
-                df_bigrams.at[row.Index, 'fr'] = df_bigrams.at[row.Index, 'fr_perso']
+                # df_bigrams.at[row.Index, 'fr'] = df_bigrams.at[row.Index, 'fr_perso']
 
     # normalize df_bigrams to get 100% on each column
     df_bigrams = df_bigrams * 100 / df_bigrams.sum(axis=0)
@@ -54,23 +55,23 @@ def main():
     df_results = df_results.applymap(lambda x: round(x/df_results.at['Qwerty', 'en'] * 100, 2))
 
     # add average column with arbitrary coefs per language
-    df_results['Personal average'] = df_results.en * 0.5 + df_results.fr * 0.3 + df_results.es * 0.1 + df_results.de * 0.1
+    # df_results['Personal average'] = df_results.en * 0.5 + df_results.fr * 0.3 + df_results.es * 0.1 + df_results.de * 0.1
     
     plt.style.use('ggplot') # plot style: seaborn-whitegrid or ggplot
 
     # save results_full.png
-    df_plot = df_results.sort_values(by=['en'], ascending=True)
-    df_plot = df_plot[['en', 'en_perso', 'fr', 'fr_perso', 'es', 'de', 'se']]
-    df_plot.plot(kind='bar', title='Grades per layout (lower is better) - Full results', figsize=(18,12), rot=60, width=0.8)
-    plt.tight_layout()
-    plt.savefig('results_full.png', dpi=300)
+    # df_plot = df_results.sort_values(by=['en'], ascending=True)
+    # df_plot = df_plot[['en', 'en_perso', 'fr', 'fr_perso', 'es', 'de', 'se']]
+    # df_plot.plot(kind='bar', title='Grades per layout (lower is better) - Full results', figsize=(18,12), rot=60, width=0.8)
+    # plt.tight_layout()
+    # plt.savefig('results_full.png', dpi=300)
 
     # save results.png
-    df_plot = df_results.sort_values(by=['en'], ascending=True)
-    df_plot = df_plot[['en', 'fr', 'es', 'de', 'se']]
-    df_plot.plot(kind='bar', title='Grades per layout (lower is better)', figsize=(18,12), rot=60, width=0.8)
-    plt.tight_layout()
-    plt.savefig('results.png', dpi=300)
+    # df_plot = df_results.sort_values(by=['en'], ascending=True)
+    # df_plot = df_plot[['en', 'fr', 'es', 'de', 'se']]
+    # df_plot.plot(kind='bar', title='Grades per layout (lower is better)', figsize=(18,12), rot=60, width=0.8)
+    # plt.tight_layout()
+    # plt.savefig('results.png', dpi=300)
 
     # save results_en.png
     df_plot = df_results.sort_values(by=['en'], ascending=True)
@@ -80,17 +81,19 @@ def main():
     plt.savefig('results_en.png', dpi=300)
 
     # save results_fr.png
-    df_plot = df_results.sort_values(by=['fr'], ascending=True)
-    df_plot = df_plot[['fr', 'fr_nopunctuation', 'fr_perso']]
-    df_plot.plot(kind='bar', title='Grades per layout (lower is better) - Results for French', figsize=(18,12), rot=60, width=0.8)
-    plt.tight_layout()
-    plt.savefig('results_fr.png', dpi=300)
+    # df_plot = df_results.sort_values(by=['fr'], ascending=True)
+    # df_plot = df_plot[['fr', 'fr_nopunctuation', 'fr_perso']]
+    # df_plot.plot(kind='bar', title='Grades per layout (lower is better) - Results for French', figsize=(18,12), rot=60, width=0.8)
+    # plt.tight_layout()
+    # plt.savefig('results_fr.png', dpi=300)
 
     # print the table
     df_plot = df_results.sort_values(by=['en'], ascending=True)
     # df_plot = df_plot[['en', 'en_nopunctuation', 'en_perso', 'fr', 'fr_nopunctuation', 'fr_perso', 'es', 'de', 'Personal average']]
-    df_plot = df_plot[['en', 'en_perso', 'fr', 'fr_perso', 'es', 'de', 'se']]
+    df_plot = df_plot[['en', 'en_perso']]
     print(df_plot)
+
+    # plt.show()
 
 
 def load_config():
@@ -99,7 +102,7 @@ def load_config():
     """
     
     # load the whole file into a str
-    filepath = os.path.join(os.path.dirname(os.path.realpath('__file__')), 'config.txt')
+    filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'config.txt')
     filehandle = open(filepath)
     filetext = filehandle.read()
     
@@ -196,7 +199,8 @@ def parse_config(blocks):
     # df_layouts is a dataframe of all predefined layouts to evaluate
     
     # dataframe of bigrams by language
-    df_bigrams = pd.read_csv(os.path.join(os.path.dirname(os.path.realpath('__file__')), 'stats.csv'), header=0, sep=',', index_col=0)
+    df_bigrams = pd.read_csv(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'stats.csv'), header=0, sep=',', index_col=0)
+    df_bigrams = df_bigrams.drop(columns=['fr','fr_perso','es','de','se'])
     # df_bigrams is a dataframe of all possible bigrams (aa, ab…) with their probability per language
 
     # find the location of the penalties in the blocks list
@@ -238,6 +242,20 @@ def check_missing_letters(df_layouts, df_bigrams):
     
     return df_missing_letters
 
+def line_permutation(line, variables):
+    if not variables:
+        return [([], line.split())]
+    count = line.count('-')
+    perms = [x for x in itertools.permutations(variables, count)]
+    outputs = list()
+    for perm in perms:
+        output = line
+        for sub in perm:
+            output = output.replace('-', sub, 1)
+        outputs.append((list(perm), output.split()))
+    return outputs
+
+
 def create_df_layouts(keys_list, layouts_str):
     """ Takes keys and layouts string and outputs DataFrame of layouts"""
     # cuts the text into blocks by >>
@@ -246,9 +264,34 @@ def create_df_layouts(keys_list, layouts_str):
     layouts_names = []
     layouts_list = []
     for t in data:
-        splitted = t.split('\n', maxsplit=1)
-        layouts_names.append(splitted[0])
-        layouts_list.append(splitted[1].split())
+        splitted = t.split(os.linesep, maxsplit=1)
+        layouts_name = splitted[0]
+        layouts_lines = [x.split(' | ') for x in splitted[1].splitlines()]
+        # permutation per line
+        permus = list()
+        for layouts_line in layouts_lines:
+            variables = list()
+            if len(layouts_line) > 1:
+                variables = list(layouts_line[1])
+            permu = line_permutation(layouts_line[0], variables)
+            permus.append(permu)
+        # output
+        for line2 in permus[0]:
+            for line3 in permus[1]:
+                for line4 in permus[2]:
+                    all_permus = line2[0]+line3[0]+line4[0]
+                    if len(all_permus) != len(set(all_permus)):
+                        continue
+                    name = layouts_name
+                    if line2[0]:
+                        name += '|' + ''.join(line2[0])
+                    if line3[0]:
+                        name += '|' + ''.join(line3[0])
+                    if line4[0]:
+                        name += '|' + ''.join(line4[0])
+                    layouts_names.append(name)
+                    layouts_list.append(line2[1]+line3[1]+line4[1])
+    print(str(len(layouts_names)) + ' layouts loaded')
     # create the dataframe
     return pd.DataFrame(list(zip(*layouts_list)), index=keys_list, columns=layouts_names)
 
