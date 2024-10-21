@@ -78,9 +78,9 @@ Penalties should:
 >>Kormak
 # q w f p b j l u y ; #
 # a r s t g m n e i o '
-# / x c d v k h z , . #
+# / x c d v z h k , . #
 
->>Colemak shift
+>>Colemak
 # q w f - - j l u y ; # | gmbdp
-# a r s t - - n e i o ' | gmb
-# / x c - - k h - , . # | zvbd
+# a r s t - - n e i o ' | gmbkh
+# / x c - - - - - , . # | zvbdkh
